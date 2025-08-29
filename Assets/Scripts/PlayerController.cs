@@ -6,7 +6,8 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     private PlayerInput input;
-    private Rigidbody rigidbody;
+    private Rigidbody _rigidbody;
+    private AnimationHandlerA animationHandler;
 
     private Vector3 direction;
     private Vector2 currentInput;
@@ -16,7 +17,17 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         input = GetComponent<PlayerInput>();
-        rigidbody = GetComponent<Rigidbody>();
+        _rigidbody = GetComponent<Rigidbody>();
+
+    }
+
+    private void Start()
+    {
+        animationHandler = GetComponent<AnimationHandlerA>();
+        if (animationHandler == null)
+        {
+            Debug.LogError("AnimationHandler not found on " + gameObject.name);
+        }
     }
 
     private void FixedUpdate()
@@ -28,9 +39,10 @@ public class PlayerController : MonoBehaviour
     {
         direction = transform.forward * currentInput.y + transform.right * currentInput.x;
         direction *= moveSpeed;
-        direction.y = rigidbody.velocity.y;
+        direction.y = _rigidbody.velocity.y;
 
-        rigidbody.velocity = direction;
+        _rigidbody.velocity = direction;
+        animationHandler.MoveAnimationToggle(direction);
 
         Vector3 moveDirection = new Vector3(currentInput.x / 2, 0f, currentInput.y / 2);
 
@@ -56,5 +68,12 @@ public class PlayerController : MonoBehaviour
         {
             currentInput = Vector2.zero;
         }
+    }
+
+    public void OnAttack(InputAction.CallbackContext context)
+    {
+        if (context.phase != InputActionPhase.Started) return;
+
+        animationHandler.IsAttack();
     }
 }
